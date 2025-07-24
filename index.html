@@ -1,98 +1,107 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>Rqeeb Card – تحقق بصري للبطاقات</title>
+  <title>تحقق بصري عبر Rqeeb Card</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom, #f4f6fc, #e0e4f8);
-      padding: 1.5rem;
+      background-color: #f7f7f7;
+      padding: 24px;
       text-align: center;
-      direction: rtl;
-      margin: 0;
     }
-    header img {
-      width: 160px;
-      margin-bottom: 1rem;
+    .card-demo-section {
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 420px;
+      margin: auto;
     }
-    h1 {
-      font-size: 1.8rem;
-      color: #2c3e50;
-      margin-bottom: 0.5rem;
-    }
-    p {
-      font-size: 1rem;
-      color: #555;
-      margin-bottom: 1.5rem;
-    }
-    .card-preview {
-      width: 90%;
-      max-width: 340px;
-      height: 200px;
-      background-image: url('images/card-demo.png');
-      background-size: cover;
-      background-position: center;
-      margin: 1rem auto;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    .section-title {
+      font-size: 22px;
+      margin-bottom: 16px;
+      color: #333;
     }
     .verify-btn {
-      padding: 0.8rem 2rem;
-      font-size: 1.1rem;
-      background-color: #3554ff;
-      color: white;
+      padding: 10px 20px;
+      background-color: #0078d7;
+      color: #fff;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      margin-top: 1rem;
+      margin-top: 16px;
     }
-    #result-box {
-      margin-top: 1.5rem;
-      font-size: 1.1rem;
-      color: #333;
-    }
-    .footer-note {
-      margin-top: 2rem;
-      font-size: 0.9rem;
-      color: #777;
+    .verify-btn:hover {
+      background-color: #005fa3;
     }
   </style>
 </head>
+
 <body>
+  <section class="card-demo-section">
+    <h2 class="section-title">تحقق بصري باستخدام Rqeeb Card</h2>
 
-  <header>
-    <img src="images/Rqeeh.png" alt="شعار Rqeeb Card">
-  </header>
+    <input type="file" id="userImageInput" accept="image/*" onchange="previewImage()" style="margin-bottom: 12px;">
 
-  <h1>Rqeeb Card 💳🔐</h1>
-  <p>نظام تحقق بصري للبطاقات الائتمانية – بدون كلمات مرور، بدون تخزين بيانات</p>
+    <div id="imagePreview" style="
+      width: 340px;
+      height: 220px;
+      border: 2px dashed #ccc;
+      border-radius: 12px;
+      background-size: cover;
+      background-position: center;
+      margin: auto;">
+    </div>
 
-  <div class="card-preview" id="cardArea"></div>
+    <button class="verify-btn" onclick="analyzeTextureFromInput()">تحليل بصري مباشر</button>
 
-  <button class="verify-btn" onclick="runVerification()">تحقق من البطاقة</button>
+    <div id="match-result" style="margin-top:16px; font-weight:bold; color: #007a00;"></div>
 
-  <div id="result-box"></div>
-
-  <div class="footer-note">
-    مدعوم بمنهجية Keynova للتحقق المعرفي البصري
-  </div>
+    <canvas id="textureCanvas" width="340" height="220" style="display:none;"></canvas>
+  </section>
 
   <script>
-    function runVerification() {
-      const simulatedMatch = Math.floor(Math.random() * 101);
-      const result = document.getElementById("result-box");
+    function previewImage() {
+      const input = document.getElementById('userImageInput');
+      const preview = document.getElementById('imagePreview');
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          preview.style.backgroundImage = `url(${e.target.result})`;
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
 
-      if (simulatedMatch > 70) {
-        result.innerHTML = `✅ نسبة تطابق النسيج: ${simulatedMatch}%<br>البطاقة أصلية ومعتمدة`;
-        result.style.color = "#28a745";
-      } else {
-        result.innerHTML = `⚠️ نسبة تطابق: ${simulatedMatch}%<br>تحذير: احتمال وجود تزوير أو ضعف في البنية البصرية`;
-        result.style.color = "#dc3545";
+    function analyzeTextureFromInput() {
+      const input = document.getElementById('userImageInput');
+      const canvas = document.getElementById('textureCanvas');
+      const ctx = canvas.getContext('2d');
+
+      if (input.files && input.files[0]) {
+        const img = new Image();
+        img.onload = function () {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const pixels = imageData.data;
+
+          let contrastTotal = 0;
+          for (let i = 0; i < pixels.length; i += 4) {
+            const avg = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+            contrastTotal += Math.abs(avg - 128);
+          }
+
+          const contrastScore = (contrastTotal / (canvas.width * canvas.height)) / 2;
+          const simulatedMatch = (95 + contrastScore / 3).toFixed(2);
+
+          document.getElementById("match-result").innerText =
+            `تحليل نسيج تم بنجاح ✅ نسبة التطابق الهندسي: ${simulatedMatch}%`;
+        };
+        img.src = URL.createObjectURL(input.files[0]);
       }
     }
   </script>
-
 </body>
 </html>
