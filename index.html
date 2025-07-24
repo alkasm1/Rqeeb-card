@@ -3,56 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <title>Rqeeb Card – تحقق بصري للبطاقات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f4f6fc;
-      padding: 2rem;
+      background: linear-gradient(to bottom, #f4f6fc, #e0e4f8);
+      padding: 1.5rem;
       text-align: center;
       direction: rtl;
+      margin: 0;
+    }
+    header img {
+      width: 160px;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: #2c3e50;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      font-size: 1rem;
+      color: #555;
+      margin-bottom: 1.5rem;
     }
     .card-preview {
-      width: 320px;
+      width: 90%;
+      max-width: 340px;
       height: 200px;
       background-image: url('images/card-demo.png');
       background-size: cover;
-      margin: 2rem auto;
+      background-position: center;
+      margin: 1rem auto;
       border-radius: 12px;
       box-shadow: 0 0 15px rgba(0,0,0,0.2);
-      position: relative;
     }
     .verify-btn {
       padding: 0.8rem 2rem;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       background-color: #3554ff;
       color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      margin-top: 1rem;
     }
     #result-box {
       margin-top: 1.5rem;
       font-size: 1.1rem;
       color: #333;
     }
+    .footer-note {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #777;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Rqeeb Card 💳🔐</h1>
-  <p>نظام تحقق ذكي يحلل نسيج بطاقة الائتمان بصريًا قبل السماح بالدفع</p>
+  <header>
+    <img src="images/Rqeeh.png" alt="شعار Rqeeb Card">
+  </header>
 
-  <div class="card-preview" id="cardArea">
-    <!-- نموذج بطاقة -->
-  </div>
+  <h1>Rqeeb Card 💳🔐</h1>
+  <p>نظام تحقق بصري للبطاقات الائتمانية – بدون كلمات مرور، بدون تخزين بيانات</p>
+
+  <div class="card-preview" id="cardArea"></div>
 
   <button class="verify-btn" onclick="runVerification()">تحقق من البطاقة</button>
 
   <div id="result-box"></div>
 
+  <div class="footer-note">
+    مدعوم بمنهجية Keynova للتحقق المعرفي البصري
+  </div>
+
   <script>
     function runVerification() {
-      const simulatedMatch = Math.floor(Math.random() * 101); // محاكاة تطابق بين 0% و100%
+      const simulatedMatch = Math.floor(Math.random() * 101);
       const result = document.getElementById("result-box");
 
       if (simulatedMatch > 70) {
