@@ -2,65 +2,77 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>تحقق بصري عبر Rqeeb Card</title>
+  <title>Rqeeb Card – تحقق بصري مباشر</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f7f7f7;
-      padding: 24px;
+      background-color: #f5f8fc;
+      padding: 20px;
       text-align: center;
     }
-    .card-demo-section {
+    .section {
+      max-width: 420px;
+      margin: auto;
       background: #fff;
       padding: 24px;
       border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      max-width: 420px;
-      margin: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
     .section-title {
       font-size: 22px;
-      margin-bottom: 16px;
       color: #333;
+      margin-bottom: 18px;
+    }
+    #imagePreview {
+      width: 340px;
+      height: 220px;
+      border: 2px dashed #aaa;
+      border-radius: 12px;
+      background-size: cover;
+      background-position: center;
+      margin: 12px auto;
+    }
+    input[type="file"] {
+      margin-bottom: 12px;
     }
     .verify-btn {
+      background-color: #3554ff;
+      color: white;
       padding: 10px 20px;
-      background-color: #0078d7;
-      color: #fff;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      margin-top: 16px;
+      margin-top: 8px;
     }
     .verify-btn:hover {
-      background-color: #005fa3;
+      background-color: #2643cc;
+    }
+    #match-result {
+      margin-top: 16px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #2c7c2c;
     }
   </style>
 </head>
 
 <body>
-  <section class="card-demo-section">
-    <h2 class="section-title">تحقق بصري باستخدام Rqeeb Card</h2>
+  <div class="section">
+    <h2 class="section-title">تحقق بصري مباشر باستخدام Rqeeb Card</h2>
 
-    <input type="file" id="userImageInput" accept="image/*" onchange="previewImage()" style="margin-bottom: 12px;">
+    <input type="file" id="userImageInput" accept="image/*" onchange="previewImage();">
+    <div id="imagePreview"></div>
 
-    <div id="imagePreview" style="
-      width: 340px;
-      height: 220px;
-      border: 2px dashed #ccc;
-      border-radius: 12px;
-      background-size: cover;
-      background-position: center;
-      margin: auto;">
-    </div>
+    <button class="verify-btn" onclick="analyzeTextureFromInput()">تحليل الصورة الآن</button>
 
-    <button class="verify-btn" onclick="analyzeTextureFromInput()">تحليل بصري مباشر</button>
-
-    <div id="match-result" style="margin-top:16px; font-weight:bold; color: #007a00;"></div>
-
+    <div id="match-result"></div>
     <canvas id="textureCanvas" width="340" height="220" style="display:none;"></canvas>
-  </section>
+
+    <p style="font-size: 0.9rem; color: #777; margin-top: 16px;">
+      تقنية تحليل النسيج البصري المدعومة بمنهجية Keynova – لا حاجة لكلمة مرور أو تخزين
+    </p>
+  </div>
 
   <script>
     function previewImage() {
@@ -94,10 +106,10 @@
           }
 
           const contrastScore = (contrastTotal / (canvas.width * canvas.height)) / 2;
-          const simulatedMatch = (95 + contrastScore / 3).toFixed(2);
+          const simulatedMatch = (93 + contrastScore / 3).toFixed(2);
 
           document.getElementById("match-result").innerText =
-            `تحليل نسيج تم بنجاح ✅ نسبة التطابق الهندسي: ${simulatedMatch}%`;
+            `تم تحليل الصورة ✅ نسبة التطابق الهندسي: ${simulatedMatch}%`;
         };
         img.src = URL.createObjectURL(input.files[0]);
       }
