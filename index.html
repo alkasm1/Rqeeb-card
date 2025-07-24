@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>Rqeeb Card – تحقق بصري للبطاقات</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6fc;
+      padding: 2rem;
+      text-align: center;
+      direction: rtl;
+    }
+    .card-preview {
+      width: 320px;
+      height: 200px;
+      background-image: url('images/card-demo.png');
+      background-size: cover;
+      margin: 2rem auto;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    .verify-btn {
+      padding: 0.8rem 2rem;
+      font-size: 1.2rem;
+      background-color: #3554ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #result-box {
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Rqeeb Card 💳🔐</h1>
+  <p>نظام تحقق ذكي يحلل نسيج بطاقة الائتمان بصريًا قبل السماح بالدفع</p>
+
+  <div class="card-preview" id="cardArea">
+    <!-- نموذج بطاقة -->
+  </div>
+
+  <button class="verify-btn" onclick="runVerification()">تحقق من البطاقة</button>
+
+  <div id="result-box"></div>
+
+  <script>
+    function runVerification() {
+      const simulatedMatch = Math.floor(Math.random() * 101); // محاكاة تطابق بين 0% و100%
+      const result = document.getElementById("result-box");
+
+      if (simulatedMatch > 70) {
+        result.innerHTML = `✅ نسبة تطابق النسيج: ${simulatedMatch}%<br>البطاقة أصلية ومعتمدة`;
+        result.style.color = "#28a745";
+      } else {
+        result.innerHTML = `⚠️ نسبة تطابق: ${simulatedMatch}%<br>تحذير: احتمال وجود تزوير أو ضعف في البنية البصرية`;
+        result.style.color = "#dc3545";
+      }
+    }
+  </script>
+
+</body>
+</html>
