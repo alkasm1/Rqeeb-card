@@ -1,129 +1,89 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>مطابقة بطاقة Rqeeb</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>التحقق من البطاقة</title>
   <style>
     body {
-      font-family: 'Tajawal', sans-serif;
-      background-color: #f4f4f4;
+      background: linear-gradient(to bottom, #f9f9f9, #e6eff5);
+      font-family: 'Cairo', sans-serif;
+      padding: 20px;
       text-align: center;
-      direction: rtl;
-      padding: 30px;
+      color: #222;
     }
-
-    h2 {
-      color: #333;
+    h1 {
+      color: #195a7a;
       margin-bottom: 20px;
     }
-
-    input, button {
+    .card-input {
+      background-color: #fff;
+      border: 2px solid #195a7a;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    input[type="file"], button {
+      font-size: 1em;
       padding: 10px;
-      margin: 10px;
-      font-size: 16px;
+      margin-top: 10px;
       border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      background-color: #ff8800;
-      color: white;
       border: none;
+    }
+    button {
+      background-color: #195a7a;
+      color: white;
       cursor: pointer;
+      width: 100%;
     }
-
     button:hover {
-      background-color: #e67600;
+      background-color: #15709d;
     }
-
     #result {
       margin-top: 20px;
-      font-size: 18px;
-      color: #333;
+      font-size: 1.1em;
     }
   </style>
 </head>
 <body>
-
-  <h2>🔐 تحقق من صورة بطاقة Rqeeb</h2>
-
-  <input type="password" id="secretCode" placeholder="أدخل الرقم السري المكون من 8 أرقام" maxlength="8" /><br/>
-  <input type="file" accept="image/*" id="uploadImage" /><br/>
-  <button onclick="startVerification()">ابدأ المطابقة</button>
-
-  <div id="result"></div>
+  <h1>التحقق من البطاقة</h1>
+  <div class="card-input">
+    <p>قم برفع صورة البطاقة لمطابقتها مع الأصل</p>
+    <input type="file" id="cardImage" accept="image/*" />
+    <button onclick="verifyCard()">تحقق الآن</button>
+    <div id="result"></div>
+  </div>
 
   <script>
-    const storedHash = "c3e2a1d9f8b7c6e5d4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1";
+    const knownHash = "e3a1f9a4c1e8abed284f82bd6e52263fa08b..."; // الهاش الجديد هنا
 
     async function calculateHash(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const img = new Image();
-          img.src = reader.result;
-          img.onload = () => {
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-
-            const cropSize = Math.min(img.width, img.height) * 0.6;
-            const offsetX = (img.width - cropSize) / 2;
-            const offsetY = (img.height - cropSize) / 2;
-
-            canvas.width = 300;
-            canvas.height = 300;
-
-            ctx.drawImage(img, offsetX, offsetY, cropSize, cropSize, 0, 0, 300, 300);
-
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            for (let i = 0; i < data.length; i += 4) {
-              const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-              data[i] = data[i + 1] = data[i + 2] = avg;
-            }
-            ctx.putImageData(imageData, 0, 0);
-
-            canvas.toBlob(async (blob) => {
-              const arrayBuffer = await blob.arrayBuffer();
-              const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
-              const hashArray = Array.from(new Uint8Array(hashBuffer));
-              const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-              resolve(hashHex);
-            }, 'image/png');
-          };
-          img.onerror = reject;
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      const arrayBuffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
-    async function startVerification() {
-      const code = document.getElementById("secretCode").value.trim();
-      const file = document.getElementById("uploadImage").files[0];
+    async function verifyCard() {
+      const fileInput = document.getElementById("cardImage");
       const resultDiv = document.getElementById("result");
 
-      if (code !== "00000000") {
-        resultDiv.textContent = "🚫 الرقم السري غير صحيح. يجب إدخال 8 أصفار.";
+      if (!fileInput.files.length) {
+        resultDiv.textContent = "الرجاء اختيار صورة البطاقة أولاً.";
         return;
       }
 
-      if (!file) {
-        resultDiv.textContent = "📷 الرجاء اختيار صورة من الجهاز.";
-        return;
-      }
+      const hash = await calculateHash(fileInput.files[0]);
 
-      resultDiv.textContent = "⏳ جاري معالجة الصورة...";
-
-      const uploadedHash = await calculateHash(file);
-
-      if (uploadedHash === storedHash) {
-        resultDiv.textContent = "✅ الصورة مطابقة! تم التحقق بنجاح.";
+      if (hash === knownHash) {
+        resultDiv.textContent = "✅ المطابقة ناجحة، تم التعرف على البطاقة.";
+        resultDiv.style.color = "green";
       } else {
-        resultDiv.textContent = "❌ الصورة غير مطابقة. تحقق من الملف.";
+        resultDiv.textContent = "❌ المطابقة فشلت، الصورة غير مطابقة.";
+        resultDiv.style.color = "red";
       }
     }
   </script>
-
 </body>
 </html>
