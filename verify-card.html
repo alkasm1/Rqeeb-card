@@ -6,9 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      background: #0b0b0b;
+      background: #101010;
       font-family: 'Tajawal', sans-serif;
-      color: #ff8800;
+      color: #ffcc00;
       padding: 2rem;
       text-align: center;
     }
@@ -17,7 +17,7 @@
       margin-bottom: 1rem;
     }
     .container {
-      background: #1c1c1c;
+      background: #1f1f1f;
       padding: 1.5rem;
       border-radius: 12px;
       max-width: 480px;
@@ -40,12 +40,12 @@
       color: #333;
     }
     button {
-      background: #ff8800;
-      color: #fff;
+      background: #ffcc00;
+      color: #000;
       cursor: pointer;
     }
     button:hover {
-      background: #e67600;
+      background: #e6b800;
     }
     #result {
       margin-top: 20px;
@@ -56,31 +56,24 @@
 </head>
 <body>
 
-  <h1>🔐 التحقق من الصورة + الرمز السري</h1>
+  <h1>🔐 التحقق من الصورة والرمز</h1>
   <div class="container">
-    <input type="password" id="secretCode" placeholder="أدخل الرقم السري المكون من 8 أرقام" maxlength="8" />
+    <input type="password" id="secretCode" placeholder="أدخل الرمز السري المكون من 8 أرقام" maxlength="8" />
     <input type="file" accept="image/*" id="uploadImage" />
     <button onclick="startVerification()">ابدأ المطابقة</button>
-    <div id="result">👁️ بانتظار الإدخال...</div>
+    <div id="result">📢 بانتظار الإدخال...</div>
   </div>
 
   <script>
-    // جدول يحتوي الهواشات المركبة لكل رمز
     const knownHashes = {
       "00000000": "9b6df64b2aa31ee22e5bbf2a70f2f9868d22499ac82f31a37b279db05bff4433",
       "11111111": "eee9fa98a7a3ebd38f5c2327d2d81b9789ba881d49c9747144ee86b3b7d7d1e3"
-      // يمكن إضافة المزيد من الرموز والهاشات لاحقًا
+      // يمكنك إضافة رموز أخرى هنا حسب الحاجة
     };
 
-    async function generateCombinedHash(file, code) {
-      const fileBuffer = await file.arrayBuffer();
-      const encoder = new TextEncoder();
-      const codeBuffer = encoder.encode(code);
-      const combined = new Uint8Array(fileBuffer.byteLength + codeBuffer.byteLength);
-      combined.set(new Uint8Array(fileBuffer), 0);
-      combined.set(codeBuffer, fileBuffer.byteLength);
-
-      const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
+    async function generateImageHash(file) {
+      const buffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
     }
@@ -91,34 +84,34 @@
       const resultDiv = document.getElementById("result");
 
       if (!code || code.length !== 8) {
-        resultDiv.textContent = "🚫 يرجى إدخال رمز سري مكون من 8 أرقام.";
+        resultDiv.textContent = "🚫 أدخل رمزًا مكونًا من 8 أرقام.";
         resultDiv.style.color = "orange";
         return;
       }
 
       if (!fileInput) {
-        resultDiv.textContent = "📷 الرجاء اختيار صورة من الجهاز.";
+        resultDiv.textContent = "📷 اختر صورة للتحقق.";
         resultDiv.style.color = "orange";
         return;
       }
 
       if (!(code in knownHashes)) {
-        resultDiv.textContent = "⚠️ الرمز غير معتمد حاليًا.";
+        resultDiv.textContent = "⚠️ هذا الرمز غير معرف مسبقًا.";
         resultDiv.style.color = "orange";
         return;
       }
 
-      resultDiv.textContent = "⏳ جاري التحقق من الصورة والرمز...";
+      resultDiv.textContent = "⏳ جاري التحقق من الصورة...";
       resultDiv.style.color = "#fff";
 
-      const combinedHash = await generateCombinedHash(fileInput, code);
+      const imageHash = await generateImageHash(fileInput);
       const expectedHash = knownHashes[code];
 
-      if (combinedHash === expectedHash) {
-        resultDiv.textContent = "✅ المطابقة ناجحة! الصورة والرمز متوافقان.";
+      if (imageHash === expectedHash) {
+        resultDiv.textContent = "✅ المطابقة ناجحة! الصورة تطابق الرمز.";
         resultDiv.style.color = "lightgreen";
       } else {
-        resultDiv.textContent = "❌ الصورة لا تطابق الرمز المدخل.";
+        resultDiv.textContent = "❌ فشل التحقق: الصورة لا تطابق الرمز المدخل.";
         resultDiv.style.color = "red";
       }
     }
