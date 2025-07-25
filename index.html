@@ -5,14 +5,11 @@
   <title>Rqeeb Card | تحقق آمن</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
-  <button onclick="window.location.href='investor.html'">
-  💼 عرض المشروع للمستثمرين
-</button>
   <style>
     body {
       background: #0b0b0b;
       color: #ff8800;
-      font-family: 'Tajawal', sans-serif;
+      font-family: 'Tajawal', Arial, sans-serif;
       text-align: center;
       padding: 2rem;
     }
@@ -24,15 +21,13 @@
       max-width: 480px;
       box-shadow: 0 0 10px #000;
     }
-    input[type="file"], button {
+    button {
       width: 100%;
       padding: 0.8rem;
       margin-top: 10px;
       font-size: 1rem;
       border-radius: 8px;
       border: none;
-    }
-    button {
       background: #ff8800;
       color: #fff;
       cursor: pointer;
@@ -40,71 +35,20 @@
     button:hover {
       background: #e67600;
     }
-    #resultMessage {
-      margin-top: 20px;
-      font-size: 1.2rem;
-      color: #fff;
-    }
-    progress {
-      width: 100%;
-      margin-top: 10px;
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 1.5rem;
     }
   </style>
 </head>
 <body>
 
-  <h1>🔐 تحقق من بطاقة Rqeeb</h1>
+  <h1>🔐 Rqeeb Card - الصفحة الرئيسية</h1>
 
   <div class="card">
-    <h3>📷 تصوير البطاقة أو اختيارها</h3>
-    <input type="file" accept="image/*" id="cardImage" capture="environment">
-    <button onclick="verifyCard()">تحقق الآن 🔍</button>
-    <div id="resultMessage">👁️ بانتظار اختيار الصورة...</div>
-    <progress id="matchProgress" value="0" max="100"></progress>
+    <button onclick="location.href='investors.html'">📈 صفحة المستثمرين</button>
+    <button onclick="location.href='verify-card.html'">🔍 انتقل لصفحة التحقق</button>
   </div>
-
-<script>
-const referenceHash = "d4c3b2a1f0e9d8c7b6a5a4a3a2a1a0f9e8d7c6b5a4a3a2a1a0f9e8d7c6b5a4"; // مثال تجريبي
-
-async function verifyCard() {
-  const file = document.getElementById("cardImage").files[0];
-  const result = document.getElementById("resultMessage");
-  const progress = document.getElementById("matchProgress");
-
-  if (!file) {
-    result.innerText = "⚠️ يرجى اختيار صورة البطاقة أولًا";
-    return;
-  }
-
-  result.innerText = "⏳ جاري استخراج البصمة...";
-  const hash = await calculateHash(file);
-  const percent = calculateSimilarity(hash, referenceHash);
-
-  progress.value = percent;
-
-  if (percent >= 90)
-    result.innerText = `✅ تطابق ${percent}% - البطاقة أصلية`;
-  else if (percent >= 70)
-    result.innerText = `⚠️ تطابق ${percent}% - تحقق يدوي مطلوب`;
-  else
-    result.innerText = `❌ تطابق ${percent}% - محتمل تزوير`;
-}
-
-async function calculateHash(file) {
-  const arrayBuffer = await file.arrayBuffer();
-  const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function calculateSimilarity(hashA, hashB) {
-  let match = 0;
-  for (let i = 0; i < hashA.length; i++) {
-    if (hashA[i] === hashB[i]) match++;
-  }
-  return Math.floor((match / hashA.length) * 100);
-}
-</script>
 
 </body>
 </html>
