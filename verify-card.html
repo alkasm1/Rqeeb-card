@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>التحقق من البطاقة</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      background: #0b0b0b;
+      font-family: 'Tajawal', sans-serif;
+      color: #ff8800;
+      padding: 2rem;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .container {
+      background: #1c1c1c;
+      padding: 1.5rem;
+      border-radius: 12px;
+      max-width: 480px;
+      margin: auto;
+      box-shadow: 0 0 10px #000;
+    }
+    input[type="password"],
+    input[type="file"],
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      margin-top: 10px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+    }
+    input[type="password"],
+    input[type="file"] {
+      background: #fff;
+      color: #333;
+    }
+    button {
+      background: #ff8800;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #e67600;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 1.1rem;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔐 التحقق من الصورة</h1>
+  <div class="container">
+    <input type="password" id="secretCode" placeholder="أدخل الرقم السري المكون من 8 أرقام" maxlength="8" />
+    <input type="file" accept="image/*" id="uploadImage" />
+    <button onclick="startVerification()">ابدأ المطابقة</button>
+    <div id="result">👁️ بانتظار الإدخال...</div>
+  </div>
+
+  <script>
+    const requiredCode = "00000000";
+    const knownHash = "c3a7255566f7773370f3fa4193ec66c1400e498bf3d439d122e6a87932facc23"; // هاش مأخوذ من الصورة الأصلية كما هي
+
+    async function calculateHash(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    async function startVerification() {
+      const code = document.getElementById("secretCode").value.trim();
+      const fileInput = document.getElementById("uploadImage").files[0];
+      const resultDiv = document.getElementById("result");
+
+      if (code !== requiredCode) {
+        resultDiv.textContent = "🚫 الرقم السري غير صحيح. يجب إدخال 00000000.";
+        return;
+      }
+
+      if (!fileInput) {
+        resultDiv.textContent = "📷 الرجاء اختيار صورة من الجهاز.";
+        return;
+      }
+
+      resultDiv.textContent = "⏳ جاري حساب البصمة الرقمية...";
+
+      const uploadedHash = await calculateHash(fileInput);
+
+      if (uploadedHash === knownHash) {
+        resultDiv.textContent = "✅ الصورة مطابقة! تم التحقق بنجاح.";
+        resultDiv.style.color = "lightgreen";
+      } else {
+        resultDiv.textContent = "❌ الصورة غير مطابقة. تحقق من الملف.";
+        resultDiv.style.color = "red";
+      }
+    }
+  </script>
+
+</body>
+</html>
