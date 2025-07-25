@@ -6,57 +6,74 @@
   <title>التحقق من البطاقة</title>
   <style>
     body {
-      background: linear-gradient(to bottom, #f9f9f9, #e6eff5);
-      font-family: 'Cairo', sans-serif;
-      padding: 20px;
+      background: #0b0b0b;
+      font-family: 'Tajawal', sans-serif;
+      color: #ff8800;
+      padding: 2rem;
       text-align: center;
-      color: #222;
     }
+
     h1 {
-      color: #195a7a;
-      margin-bottom: 20px;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
     }
-    .card-input {
-      background-color: #fff;
-      border: 2px solid #195a7a;
+
+    .container {
+      background: #1c1c1c;
+      padding: 1.5rem;
+      border-radius: 12px;
+      max-width: 450px;
+      margin: auto;
+      box-shadow: 0 0 10px #000;
+    }
+
+    input[type="password"],
+    input[type="file"],
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 10px 0;
+      font-size: 1rem;
       border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    input[type="file"], button {
-      font-size: 1em;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 6px;
       border: none;
     }
+
+    input[type="password"],
+    input[type="file"] {
+      background: #fff;
+      color: #333;
+    }
+
     button {
-      background-color: #195a7a;
-      color: white;
+      background: #ff8800;
+      color: #fff;
       cursor: pointer;
-      width: 100%;
     }
+
     button:hover {
-      background-color: #15709d;
+      background: #e67600;
     }
+
     #result {
-      margin-top: 20px;
-      font-size: 1.1em;
+      margin-top: 15px;
+      font-size: 1.1rem;
+      color: #fff;
     }
   </style>
 </head>
 <body>
-  <h1>التحقق من البطاقة</h1>
-  <div class="card-input">
-    <p>قم برفع صورة البطاقة لمطابقتها مع الأصل</p>
-    <input type="file" id="cardImage" accept="image/*" />
-    <button onclick="verifyCard()">تحقق الآن</button>
-    <div id="result"></div>
+
+  <h1>🔐 صفحة التحقق</h1>
+  <div class="container">
+    <input type="password" id="secretCode" placeholder="أدخل الرقم السري المكون من 8 أرقام" maxlength="8" />
+    <input type="file" accept="image/*" id="uploadImage" />
+    <button onclick="startVerification()">ابدأ المطابقة</button>
+    <div id="result">👁️ بانتظار إدخال البيانات...</div>
   </div>
 
   <script>
-    const knownHash = "e3a1f9a4c1e8abed284f82bd6e52263fa08b..."; // الهاش الجديد هنا
+    const requiredCode = "00000000";
+    const knownHash = "e3a1f9a4c1e8abed284f82bd6e52263fa08bd2d7db2384b2b394a5f47cb08f0b"; // تم حسابه من Rqeeb-card.png كما هي
 
     async function calculateHash(file) {
       const arrayBuffer = await file.arrayBuffer();
@@ -65,25 +82,32 @@
       return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
-    async function verifyCard() {
-      const fileInput = document.getElementById("cardImage");
+    async function startVerification() {
+      const code = document.getElementById("secretCode").value.trim();
+      const fileInput = document.getElementById("uploadImage").files[0];
       const resultDiv = document.getElementById("result");
 
-      if (!fileInput.files.length) {
-        resultDiv.textContent = "الرجاء اختيار صورة البطاقة أولاً.";
+      if (code !== requiredCode) {
+        resultDiv.textContent = "🚫 الرقم السري غير صحيح. يجب إدخال 00000000.";
         return;
       }
 
-      const hash = await calculateHash(fileInput.files[0]);
+      if (!fileInput) {
+        resultDiv.textContent = "📷 الرجاء اختيار صورة من الجهاز.";
+        return;
+      }
 
-      if (hash === knownHash) {
-        resultDiv.textContent = "✅ المطابقة ناجحة، تم التعرف على البطاقة.";
-        resultDiv.style.color = "green";
+      resultDiv.textContent = "⏳ جاري حساب البصمة الرقمية...";
+
+      const uploadedHash = await calculateHash(fileInput);
+
+      if (uploadedHash === knownHash) {
+        resultDiv.textContent = "✅ الصورة مطابقة! تم التحقق بنجاح.";
       } else {
-        resultDiv.textContent = "❌ المطابقة فشلت، الصورة غير مطابقة.";
-        resultDiv.style.color = "red";
+        resultDiv.textContent = "❌ الصورة غير مطابقة. تحقق من الملف.";
       }
     }
   </script>
+
 </body>
 </html>
