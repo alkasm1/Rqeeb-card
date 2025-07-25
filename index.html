@@ -1,119 +1,107 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>Rqeeb Card – تحقق بصري مباشر</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Rqeeb Card | تحقق آمن</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f5f8fc;
-      padding: 20px;
+      background: #0b0b0b;
+      color: #ff8800;
+      font-family: 'Tajawal', sans-serif;
       text-align: center;
+      padding: 2rem;
     }
-    .section {
-      max-width: 420px;
-      margin: auto;
-      background: #fff;
-      padding: 24px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-    .section-title {
-      font-size: 22px;
-      color: #333;
-      margin-bottom: 18px;
-    }
-    #imagePreview {
-      width: 340px;
-      height: 220px;
-      border: 2px dashed #aaa;
+    .card {
+      background: #1c1c1c;
+      padding: 1rem;
+      margin: 1rem auto;
       border-radius: 12px;
-      background-size: cover;
-      background-position: center;
-      margin: 12px auto;
+      max-width: 480px;
+      box-shadow: 0 0 10px #000;
     }
-    input[type="file"] {
-      margin-bottom: 12px;
-    }
-    .verify-btn {
-      background-color: #3554ff;
-      color: white;
-      padding: 10px 20px;
-      border: none;
+    input[type="file"], button {
+      width: 100%;
+      padding: 0.8rem;
+      margin-top: 10px;
+      font-size: 1rem;
       border-radius: 8px;
+      border: none;
+    }
+    button {
+      background: #ff8800;
+      color: #fff;
       cursor: pointer;
-      margin-top: 8px;
     }
-    .verify-btn:hover {
-      background-color: #2643cc;
+    button:hover {
+      background: #e67600;
     }
-    #match-result {
-      margin-top: 16px;
-      font-weight: bold;
-      font-size: 1.1rem;
-      color: #2c7c2c;
+    #resultMessage {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      color: #fff;
+    }
+    progress {
+      width: 100%;
+      margin-top: 10px;
     }
   </style>
 </head>
-
 <body>
-  <div class="section">
-    <h2 class="section-title">تحقق بصري مباشر باستخدام Rqeeb Card</h2>
 
-    <input type="file" id="userImageInput" accept="image/*" onchange="previewImage();">
-    <div id="imagePreview"></div>
+  <h1>🔐 تحقق من بطاقة Rqeeb</h1>
 
-    <button class="verify-btn" onclick="analyzeTextureFromInput()">تحليل الصورة الآن</button>
-
-    <div id="match-result"></div>
-    <canvas id="textureCanvas" width="340" height="220" style="display:none;"></canvas>
-
-    <p style="font-size: 0.9rem; color: #777; margin-top: 16px;">
-      تقنية تحليل النسيج البصري المدعومة بمنهجية Keynova – لا حاجة لكلمة مرور أو تخزين
-    </p>
+  <div class="card">
+    <h3>📷 تصوير البطاقة أو اختيارها</h3>
+    <input type="file" accept="image/*" id="cardImage" capture="environment">
+    <button onclick="verifyCard()">تحقق الآن 🔍</button>
+    <div id="resultMessage">👁️ بانتظار اختيار الصورة...</div>
+    <progress id="matchProgress" value="0" max="100"></progress>
   </div>
 
-  <script>
-    function previewImage() {
-      const input = document.getElementById('userImageInput');
-      const preview = document.getElementById('imagePreview');
-      if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          preview.style.backgroundImage = `url(${e.target.result})`;
-        };
-        reader.readAsDataURL(input.files[0]);
-      }
-    }
+<script>
+const referenceHash = "d4c3b2a1f0e9d8c7b6a5a4a3a2a1a0f9e8d7c6b5a4a3a2a1a0f9e8d7c6b5a4"; // مثال تجريبي
 
-    function analyzeTextureFromInput() {
-      const input = document.getElementById('userImageInput');
-      const canvas = document.getElementById('textureCanvas');
-      const ctx = canvas.getContext('2d');
+async function verifyCard() {
+  const file = document.getElementById("cardImage").files[0];
+  const result = document.getElementById("resultMessage");
+  const progress = document.getElementById("matchProgress");
 
-      if (input.files && input.files[0]) {
-        const img = new Image();
-        img.onload = function () {
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const pixels = imageData.data;
+  if (!file) {
+    result.innerText = "⚠️ يرجى اختيار صورة البطاقة أولًا";
+    return;
+  }
 
-          let contrastTotal = 0;
-          for (let i = 0; i < pixels.length; i += 4) {
-            const avg = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
-            contrastTotal += Math.abs(avg - 128);
-          }
+  result.innerText = "⏳ جاري استخراج البصمة...";
+  const hash = await calculateHash(file);
+  const percent = calculateSimilarity(hash, referenceHash);
 
-          const contrastScore = (contrastTotal / (canvas.width * canvas.height)) / 2;
-          const simulatedMatch = (93 + contrastScore / 3).toFixed(2);
+  progress.value = percent;
 
-          document.getElementById("match-result").innerText =
-            `تم تحليل الصورة ✅ نسبة التطابق الهندسي: ${simulatedMatch}%`;
-        };
-        img.src = URL.createObjectURL(input.files[0]);
-      }
-    }
-  </script>
+  if (percent >= 90)
+    result.innerText = `✅ تطابق ${percent}% - البطاقة أصلية`;
+  else if (percent >= 70)
+    result.innerText = `⚠️ تطابق ${percent}% - تحقق يدوي مطلوب`;
+  else
+    result.innerText = `❌ تطابق ${percent}% - محتمل تزوير`;
+}
+
+async function calculateHash(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function calculateSimilarity(hashA, hashB) {
+  let match = 0;
+  for (let i = 0; i < hashA.length; i++) {
+    if (hashA[i] === hashB[i]) match++;
+  }
+  return Math.floor((match / hashA.length) * 100);
+}
+</script>
+
 </body>
 </html>
