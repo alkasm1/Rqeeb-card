@@ -1,109 +1,141 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <title>Rqeeb Card | تحقق آمن</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
-<button onclick="window.location.href='investor.html'">
-  💼 عرض المشروع للمستثمرين
-</button>
+  <meta charset="UTF-8">
+  <title>مطابقة بطاقة الرقيب</title>
   <style>
     body {
-      background: #0b0b0b;
-      color: #ff8800;
-      font-family: 'Tajawal', sans-serif;
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
       text-align: center;
-      padding: 2rem;
+      direction: rtl;
+      padding: 20px;
     }
-    .card {
-      background: #1c1c1c;
-      padding: 1rem;
-      margin: 1rem auto;
-      border-radius: 12px;
-      max-width: 480px;
-      box-shadow: 0 0 10px #000;
+
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
     }
-    input[type="file"], button {
-      width: 100%;
-      padding: 0.8rem;
-      margin-top: 10px;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: none;
+
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
     }
+
     button {
-      background: #ff8800;
-      color: #fff;
+      background-color: #2b8a3e;
+      color: white;
+      border: none;
       cursor: pointer;
     }
+
     button:hover {
-      background: #e67600;
+      background-color: #237232;
     }
-    #resultMessage {
+
+    #result {
       margin-top: 20px;
-      font-size: 1.2rem;
-      color: #fff;
-    }
-    progress {
-      width: 100%;
-      margin-top: 10px;
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
 
-  <h1>🔐 تحقق من بطاقة Rqeeb</h1>
+  <h2>نظام مطابقة الصورة 🔍</h2>
 
-  <div class="card">
-    <h3>📷 تصوير البطاقة أو اختيارها</h3>
-    <input type="file" accept="image/*" id="cardImage" capture="environment">
-    <button onclick="verifyCard()">تحقق الآن 🔍</button>
-    <div id="resultMessage">👁️ بانتظار اختيار الصورة...</div>
-    <progress id="matchProgress" value="0" max="100"></progress>
-  </div>
-<script>
-const referenceHash = "d4c3b2a1f0e9d8c7b6a5a4a3a2a1a0f9e8d7c6b5a4a3a2a1a0f9e8d7c6b5a4"; // مثال تجريبي
+  <input type="password" id="secretCode" placeholder="أدخل الرقم السري المكون من 8 أرقام" maxlength="8" /><br/>
+  <input type="file" accept="image/*" id="uploadImage" /><br/>
+  <button id="startMatch">ابدأ المطابقة</button>
 
-async function verifyCard() {
-  const file = document.getElementById("cardImage").files[0];
-  const result = document.getElementById("resultMessage");
-  const progress = document.getElementById("matchProgress");
+  <div id="result"></div>
 
-  if (!file) {
-    result.innerText = "⚠️ يرجى اختيار صورة البطاقة أولًا";
-    return;
-  }
+  <script>
+    const storedHashes = {
+      "00000000": "a9b8c7d6e5f4ab12cd34ef567890abcd1234567890abcd1234567890abcd1234"
+      // يمكنك إضافة المزيد من الأكواد هنا لاحقًا
+    };
 
-  result.innerText = "⏳ جاري استخراج البصمة...";
-  const hash = await calculateHash(file);
-  const percent = calculateSimilarity(hash, referenceHash);
+    async function calculateHash(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
 
-  progress.value = percent;
+        reader.onload = () => {
+          const img = new Image();
+          img.src = reader.result;
 
-  if (percent >= 90)
-    result.innerText = `✅ تطابق ${percent}% - البطاقة أصلية`;
-  else if (percent >= 70)
-    result.innerText = `⚠️ تطابق ${percent}% - تحقق يدوي مطلوب`;
-  else
-    result.innerText = `❌ تطابق ${percent}% - محتمل تزوير`;
-}
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
 
-async function calculateHash(file) {
-  const arrayBuffer = await file.arrayBuffer();
-  const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
+            const cropSize = Math.min(img.width, img.height) * 0.6;
+            const offsetX = (img.width - cropSize) / 2;
+            const offsetY = (img.height - cropSize) / 2;
 
-function calculateSimilarity(hashA, hashB) {
-  let match = 0;
-  for (let i = 0; i < hashA.length; i++) {
-    if (hashA[i] === hashB[i]) match++;
-  }
-  return Math.floor((match / hashA.length) * 100);
-}
-</script>
+            canvas.width = 300;
+            canvas.height = 300;
+
+            ctx.drawImage(img, offsetX, offsetY, cropSize, cropSize, 0, 0, 300, 300);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+              const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+              data[i] = data[i + 1] = data[i + 2] = avg;
+            }
+            ctx.putImageData(imageData, 0, 0);
+
+            canvas.toBlob(async (blob) => {
+              const arrayBuffer = await blob.arrayBuffer();
+              const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+              const hashArray = Array.from(new Uint8Array(hashBuffer));
+              const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+              resolve(hashHex);
+            }, 'image/png');
+          };
+
+          img.onerror = reject;
+        };
+
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.getElementById("startMatch").onclick = async () => {
+      const code = document.getElementById("secretCode").value.trim();
+      const file = document.getElementById("uploadImage").files[0];
+      const resultDiv = document.getElementById("result");
+
+      if (code.length !== 8 || !/^\d{8}$/.test(code)) {
+        resultDiv.textContent = "⚠️ يجب إدخال الرقم السري المكون من 8 أرقام.";
+        return;
+      }
+
+      if (!file) {
+        resultDiv.textContent = "📷 الرجاء اختيار صورة من الجهاز.";
+        return;
+      }
+
+      resultDiv.textContent = "⏳ جاري معالجة الصورة...";
+
+      const uploadedHash = await calculateHash(file);
+      const originalHash = storedHashes[code];
+
+      if (!originalHash) {
+        resultDiv.textContent = "🚫 الرقم السري غير مسجل في النظام.";
+        return;
+      }
+
+      if (uploadedHash === originalHash) {
+        resultDiv.textContent = "✅ الصورة مطابقة! تم التحقق بنجاح.";
+      } else {
+        resultDiv.textContent = "❌ الصورة غير مطابقة. يرجى التحقق من الملف.";
+      }
+    };
+  </script>
 
 </body>
 </html>
