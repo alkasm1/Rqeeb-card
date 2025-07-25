@@ -65,15 +65,17 @@
   </div>
 
   <script>
-    // هاش مركب محفوظ من صورة ورمز "00000000"
-    const knownHash = "9b6df64b2aa31ee22e5bbf2a70f2f9868d22499ac82f31a37b279db05bff4433";
+    // جدول يحتوي الهواشات المركبة لكل رمز
+    const knownHashes = {
+      "00000000": "9b6df64b2aa31ee22e5bbf2a70f2f9868d22499ac82f31a37b279db05bff4433",
+      "11111111": "eee9fa98a7a3ebd38f5c2327d2d81b9789ba881d49c9747144ee86b3b7d7d1e3"
+      // يمكن إضافة المزيد من الرموز والهاشات لاحقًا
+    };
 
     async function generateCombinedHash(file, code) {
       const fileBuffer = await file.arrayBuffer();
       const encoder = new TextEncoder();
       const codeBuffer = encoder.encode(code);
-      
-      // دمج الصورة والرمز السري
       const combined = new Uint8Array(fileBuffer.byteLength + codeBuffer.byteLength);
       combined.set(new Uint8Array(fileBuffer), 0);
       combined.set(codeBuffer, fileBuffer.byteLength);
@@ -90,19 +92,29 @@
 
       if (!code || code.length !== 8) {
         resultDiv.textContent = "🚫 يرجى إدخال رمز سري مكون من 8 أرقام.";
+        resultDiv.style.color = "orange";
         return;
       }
 
       if (!fileInput) {
         resultDiv.textContent = "📷 الرجاء اختيار صورة من الجهاز.";
+        resultDiv.style.color = "orange";
+        return;
+      }
+
+      if (!(code in knownHashes)) {
+        resultDiv.textContent = "⚠️ الرمز غير معتمد حاليًا.";
+        resultDiv.style.color = "orange";
         return;
       }
 
       resultDiv.textContent = "⏳ جاري التحقق من الصورة والرمز...";
+      resultDiv.style.color = "#fff";
 
       const combinedHash = await generateCombinedHash(fileInput, code);
+      const expectedHash = knownHashes[code];
 
-      if (combinedHash === knownHash) {
+      if (combinedHash === expectedHash) {
         resultDiv.textContent = "✅ المطابقة ناجحة! الصورة والرمز متوافقان.";
         resultDiv.style.color = "lightgreen";
       } else {
